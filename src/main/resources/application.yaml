@@ -10,6 +10,13 @@ spring:
         username: wallet
         password: wallet
     flyway:
-        enabled: true
+        enabled: false
         locations:
           - db.migration
+    jpa:
+        hibernate:
+            ddl-auto: update
+    sql:
+        init:
+            schema-locations: classpath*:db/schema.sql
+            data-locations: classpath*:db/data.sql
