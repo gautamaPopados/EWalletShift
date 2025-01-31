@@ -1,47 +1,39 @@
 package ru.cft.template.api.controller;
 
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.constraints.NotNull;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.cft.template.api.dto.UserCreateDto;
 import ru.cft.template.api.dto.UserDto;
 import ru.cft.template.api.dto.UserIdResponse;
 import ru.cft.template.api.dto.UserPatchDto;
-import ru.cft.template.core.exception.UnauthorizedException;
 import ru.cft.template.core.service.implementation.UserService;
 
-import java.nio.file.AccessDeniedException;
 
-@Validated
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
     @PostMapping("")
     public UserIdResponse createUser(@RequestBody @Valid UserCreateDto userDto) {
         return userService.createUser(userDto);
     }
 
-    @GetMapping("/{id}")
-    public UserDto getById(@PathVariable Long id) {
-        return userService.getById(id);
+    @GetMapping("/{userId}")
+    public UserDto getById(@PathVariable Long userId) {
+        return userService.getById(userId);
     }
 
     @PatchMapping("/{userId}")
     public ResponseEntity<?> updateUser(
-            @PathVariable Long userId,
+            @PathVariable @NotNull Long userId,
             @RequestBody UserPatchDto userPatchDto,
             @RequestHeader(value = "Authorization", required = false) String sessionId) {
 
-        if (sessionId == null) {
-            throw new UnauthorizedException("Нет авторизации");
-        }
         userService.updateUser(userId, sessionId, userPatchDto);
         return ResponseEntity.ok().build();
     }

@@ -3,7 +3,6 @@ package ru.cft.template.core.model;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
@@ -26,9 +25,6 @@ public class Session {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false, length = 512)
-    private String token;
-
     @CreationTimestamp
     @Column(name = "creation_time", nullable = false)
     private LocalDateTime creationTime;
@@ -38,9 +34,8 @@ public class Session {
     private LocalDateTime lastActivity;
 
     @Column(name = "is_active", nullable = false)
-    private boolean isActive;
+    private boolean active;
 
     @Column(name = "expiration_time", nullable = false)
     private LocalDateTime expirationTime;
-
 }

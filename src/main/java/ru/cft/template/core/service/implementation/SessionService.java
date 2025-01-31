@@ -2,24 +2,18 @@ package ru.cft.template.core.service.implementation;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import ru.cft.template.api.dto.*;
 import ru.cft.template.api.mapper.SessionMapper;
-import ru.cft.template.api.mapper.UserMapper;
 import ru.cft.template.core.exception.NotFoundException;
 import ru.cft.template.core.exception.UnauthorizedException;
 import ru.cft.template.core.model.Session;
 import ru.cft.template.core.model.User;
 import ru.cft.template.core.repository.SessionRepository;
 import ru.cft.template.core.repository.UserRepository;
-import ru.cft.template.core.security.JwtTokenProvider;
 import ru.cft.template.core.service.ISessionService;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 @Slf4j
@@ -28,61 +22,67 @@ import java.util.UUID;
 public class SessionService implements ISessionService {
     private final UserRepository userRepository;
     private final SessionRepository sessionRepository;
-    private final AuthenticationManager authenticationManager;
-    private final JwtTokenProvider jwtTokenProvider;
 
     public User authenticate(SessionCreateDto sessionCreateDto) {
-
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        sessionCreateDto.userId(),
-                        sessionCreateDto.password()
-                )
-        );
-
         return userRepository.findById(Long.valueOf(sessionCreateDto.userId())).orElseThrow(
                 () -> new NotFoundException("Пользователь " + sessionCreateDto.userId() + " не найден")
         );
     }
 
-    public Session createSession(User user, String token)
+    public Session createSession(User user)
     {
         Session session = new Session(
                 UUID.randomUUID(),
                 user,
-                token,
                 LocalDateTime.now(),
                 LocalDateTime.now(),
                 true,
-                LocalDateTime.now().plus(jwtTokenProvider.getExpirationTime(), ChronoUnit.MILLIS)
+                LocalDateTime.now().plusMinutes(10)
         );
 
         return sessionRepository.save(session);
     }
 
-    public SessionDto getById(UUID id) {
+    public SessionDto getSessionDtoById(UUID id) {
         Session session = sessionRepository.findById(id).orElseThrow(
                 () -> new NotFoundException("Сессия не найдена")
         );
-        session.setActive(!jwtTokenProvider.isTokenExpired(session.getToken()));
 
+        if (!session.getExpirationTime().isAfter(LocalDateTime.now()))
+            session.setActive(false);
+
+        sessionRepository.save(session);
         return SessionMapper.toDto(session);
     }
-
     public boolean isActiveById(UUID id) {
         Session session = sessionRepository.findById(id).orElseThrow(
                 () -> new NotFoundException("Сессия не найдена")
         );
-        session.setActive(!jwtTokenProvider.isTokenExpired(session.getToken()));
 
-        return session.isActive();
+        if (session.getExpirationTime().isAfter(LocalDateTime.now()))
+            return true;
+
+        session.setActive(false);
+        sessionRepository.save(session);
+        return false;
     }
-    public Long getUserId(UUID id) {
-        Session session = sessionRepository.findById(id).orElseThrow(
-                () -> new NotFoundException("Сессия не найдена")
-        );
+
+    public Long getUserIdFromSession(String sessionId) {
+        UUID sessionUUID = UUID.fromString(sessionId);
+        Session session = sessionRepository.findByIdAndActiveIsTrue(sessionUUID)
+                .filter(s -> s.getExpirationTime().isAfter(LocalDateTime.now()))
+                .orElseThrow(() -> new UnauthorizedException("Сессия недействительна"));
 
         return session.getUser().getId();
+    }
+
+    public void logout(UUID sessionId) {
+        Session session = sessionRepository.findByIdAndActiveIsTrue(sessionId)
+                .filter(s -> s.getExpirationTime().isAfter(LocalDateTime.now()))
+                .orElseThrow(() -> new UnauthorizedException("Сессия недействительна"));
+
+        session.setActive(false);
+        sessionRepository.save(session);
     }
 
 

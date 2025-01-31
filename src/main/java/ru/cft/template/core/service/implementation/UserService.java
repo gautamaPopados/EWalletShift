@@ -2,17 +2,13 @@ package ru.cft.template.core.service.implementation;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import ru.cft.template.api.dto.*;
 import ru.cft.template.api.mapper.UserMapper;
 import ru.cft.template.core.exception.NotFoundException;
 import ru.cft.template.core.exception.UnauthorizedException;
-import ru.cft.template.core.model.Session;
 import ru.cft.template.core.model.User;
-import ru.cft.template.core.repository.SessionRepository;
 import ru.cft.template.core.repository.UserRepository;
 import ru.cft.template.core.service.IUserService;
 
@@ -24,12 +20,14 @@ import java.util.UUID;
 public class UserService implements IUserService {
     private final UserRepository userRepository;
     private final SessionService sessionService;
+    private final WalletService walletService;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public UserIdResponse createUser(UserCreateDto userDto) {
         String hashedPassword = encodePassword(userDto.password());
         User user = UserMapper.toEntity(userDto);
         user.setPassword(hashedPassword);
+        user.setWallet(walletService.createWallet());
         userRepository.save(user);
         return UserMapper.toIdResponse(user);
     }
@@ -49,10 +47,13 @@ public class UserService implements IUserService {
                 () -> new NotFoundException("Пользователя " + userId + " не найдено")
         );
 
+        if(sessionId == null) {
+            throw new UnauthorizedException("Сессия не указана");
+        }
         if(!sessionService.isActiveById(UUID.fromString(sessionId))) {
             throw new UnauthorizedException("Сессия недействительна");
         }
-        if(!sessionService.getUserId(UUID.fromString(sessionId)).equals(user.getId())) {
+        if(!sessionService.getUserIdFromSession(sessionId).equals(user.getId())) {
             throw new UnauthorizedException("Нельзя редактировать чужой профиль");
         }
 

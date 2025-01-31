@@ -9,6 +9,8 @@ import java.util.UUID;
 
 public interface ISessionService {
      User authenticate(SessionCreateDto sessionCreateDto);
-     Session createSession(User user, String token);
-     SessionDto getById(UUID id);
+     Session createSession(User user);
+     SessionDto getSessionDtoById(UUID id);
+     Long getUserIdFromSession(String sessionId);
+     void logout(UUID sessionId);
     }
