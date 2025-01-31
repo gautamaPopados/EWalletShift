@@ -28,8 +28,12 @@ public class WalletService implements IWalletService {
         return WalletDto.builder().balance(wallet.getBalance()).number(wallet.getId()).build();
     }
 
-    public Wallet createWallet()
-    {
+    public Wallet getWalletById(Long walletId) {
+        return walletRepository.findById(walletId).orElseThrow(
+                () -> new NotFoundException("Кошелька " + walletId + " не найдено"));
+    }
+
+    public Wallet createWallet() {
         return walletRepository.save(new Wallet());
     }
 

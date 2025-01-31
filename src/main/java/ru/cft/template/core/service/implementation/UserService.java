@@ -31,11 +31,16 @@ public class UserService implements IUserService {
         userRepository.save(user);
         return UserMapper.toIdResponse(user);
     }
-    public UserDto getById(Long id) {
+    public UserDto getUserDtoById(Long id) {
         var user =  userRepository.findById(id).orElseThrow(
                 () -> new NotFoundException("Пользователя " + id + " не найдено"));
 
         return UserMapper.toDto(user);
+    }
+
+    public User getUserById(Long id) {
+        return userRepository.findById(id).orElseThrow(
+                () -> new NotFoundException("Пользователя " + id + " не найдено"));
     }
 
     public String encodePassword(String password) {

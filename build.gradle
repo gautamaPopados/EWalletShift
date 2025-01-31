@@ -12,13 +12,13 @@ plugins {
 	id 'org.springframework.boot' version '3.2.2'
 	id 'io.spring.dependency-management' version '1.1.4'
 	id 'com.avast.gradle.docker-compose' version '0.17.6'
+	id 'org.jetbrains.kotlin.jvm'
 }
 
 group = 'ru.cft'
 version = '0.0.1'
 
 java {
-	sourceCompatibility = '21'
 }
 
 repositories {
@@ -48,6 +48,7 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 	testImplementation 'org.testcontainers:junit-jupiter'
 	testImplementation 'org.testcontainers:postgresql'
+	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 }
 
 tasks.named('test') {
@@ -63,4 +64,7 @@ jar {
 	manifest {
 		attributes 'Main-Class': 'ru.cft.template.WalletApplication'
 	}
+}
+kotlin {
+	jvmToolchain(21)
 }

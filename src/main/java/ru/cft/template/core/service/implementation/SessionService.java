@@ -76,6 +76,15 @@ public class SessionService implements ISessionService {
         return session.getUser().getId();
     }
 
+    public User getUserFromSession(String sessionId) {
+        UUID sessionUUID = UUID.fromString(sessionId);
+        Session session = sessionRepository.findByIdAndActiveIsTrue(sessionUUID)
+                .filter(s -> s.getExpirationTime().isAfter(LocalDateTime.now()))
+                .orElseThrow(() -> new UnauthorizedException("Сессия недействительна"));
+
+        return session.getUser();
+    }
+
     public void logout(UUID sessionId) {
         Session session = sessionRepository.findByIdAndActiveIsTrue(sessionId)
                 .filter(s -> s.getExpirationTime().isAfter(LocalDateTime.now()))
