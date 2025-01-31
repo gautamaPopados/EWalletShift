@@ -41,7 +41,7 @@ public class SessionService implements ISessionService {
         );
 
         return userRepository.findById(Long.valueOf(sessionCreateDto.userId())).orElseThrow(
-                () -> new NotFoundException("User with id " + sessionCreateDto.userId() + " not found")
+                () -> new NotFoundException("Пользователь " + sessionCreateDto.userId() + " не найден")
         );
     }
 
@@ -62,11 +62,27 @@ public class SessionService implements ISessionService {
 
     public SessionDto getById(UUID id) {
         Session session = sessionRepository.findById(id).orElseThrow(
-                () -> new NotFoundException("Session not found")
+                () -> new NotFoundException("Сессия не найдена")
         );
         session.setActive(!jwtTokenProvider.isTokenExpired(session.getToken()));
 
         return SessionMapper.toDto(session);
+    }
+
+    public boolean isActiveById(UUID id) {
+        Session session = sessionRepository.findById(id).orElseThrow(
+                () -> new NotFoundException("Сессия не найдена")
+        );
+        session.setActive(!jwtTokenProvider.isTokenExpired(session.getToken()));
+
+        return session.isActive();
+    }
+    public Long getUserId(UUID id) {
+        Session session = sessionRepository.findById(id).orElseThrow(
+                () -> new NotFoundException("Сессия не найдена")
+        );
+
+        return session.getUser().getId();
     }
 
 

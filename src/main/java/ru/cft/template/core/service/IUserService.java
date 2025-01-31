@@ -10,5 +10,5 @@ public interface IUserService {
     UserIdResponse createUser(UserCreateDto userDto);
     UserDto getById(Long id);
     String encodePassword(String password);
-    void updateUser(Long userId, UserPatchDto userPatchDto);
+    void updateUser(Long userId, String sessionId, UserPatchDto userPatchDto);
     }

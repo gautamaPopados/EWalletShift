@@ -14,6 +14,8 @@ import ru.cft.template.api.dto.UserPatchDto;
 import ru.cft.template.core.exception.UnauthorizedException;
 import ru.cft.template.core.service.implementation.UserService;
 
+import java.nio.file.AccessDeniedException;
+
 @Validated
 @RestController
 @RequestMapping("/users")
@@ -31,19 +33,16 @@ public class UserController {
         return userService.getById(id);
     }
 
-    @PatchMapping("/{id}")
+    @PatchMapping("/{userId}")
     public ResponseEntity<?> updateUser(
-            @PathVariable Long id,
+            @PathVariable Long userId,
             @RequestBody UserPatchDto userPatchDto,
-            @AuthenticationPrincipal UserDetails currentUser) {
+            @RequestHeader(value = "Authorization", required = false) String sessionId) {
 
-        Long currentUserId = Long.valueOf(currentUser.getUsername());
-
-        if (!currentUserId.equals(id)) {
-            throw new UnauthorizedException("Вы не можете редактировать чужой профиль");
+        if (sessionId == null) {
+            throw new UnauthorizedException("Нет авторизации");
         }
-
-        userService.updateUser(id, userPatchDto);
-        return ResponseEntity.ok("Профиль успешно обновлен");
+        userService.updateUser(userId, sessionId, userPatchDto);
+        return ResponseEntity.ok().build();
     }
 }

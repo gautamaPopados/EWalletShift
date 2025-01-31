@@ -34,11 +34,11 @@ public class ApiExceptionHandler {
         return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
-//    @ExceptionHandler(UnauthorizedException.class)
-//    public ResponseEntity<String> handleUnauthorizedException(UnauthorizedException e) {
-//        log.warn("Unauthorized: {}", e.getMessage());
-//        return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
-//    }
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<String> handleUnauthorizedException(UnauthorizedException e) {
+        log.warn("Unauthorized: {}", e.getMessage());
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
